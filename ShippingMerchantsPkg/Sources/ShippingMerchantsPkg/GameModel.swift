@@ -9,7 +9,7 @@ import Foundation
 
 // Cargo card colours
 public enum CargoCardColor: Int, Codable, CaseIterable {
-    case red,yellow,blue,white,green,pink
+    case red, yellow, green, blue, white, purple
 }
 
 // Cargo cards
@@ -42,7 +42,7 @@ public struct Ship: Identifiable, Equatable {
     public let cardCapacity: Int // card capacity of the ship
     public let tonnage: Int // weight capacity of the ship
     public let timeCubesInitial: Int // initial time cubes for the ship
-    public let timeCubes: Int // time cubes remaining on the ship
+    public let timeCubes: Int // time remaining at port
     
     // these two could be comibed
     public let cargoLeft: [CargoCard] // cargo cards assigned to this ship's left hand side

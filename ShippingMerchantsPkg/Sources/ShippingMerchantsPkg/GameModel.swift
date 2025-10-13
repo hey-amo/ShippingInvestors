@@ -43,9 +43,14 @@ public struct Ship: Identifiable, Equatable {
     public let tonnage: Int // weight capacity of the ship
     public let timeCubesInitial: Int // initial time cubes for the ship
     public let timeCubes: Int // time cubes remaining on the ship
-    public let cargo: [CargoCard] // cargo cards assigned to this ship
+    
+    // these two could be comibed
+    public let cargoLeft: [CargoCard] // cargo cards assigned to this ship's left hand side
+    public let cargoRight: [CargoCard] // cargo cards assigned to this ship's right hand side
     public let destinations: Set<Destination> // a collection of non-repeating destinations
+    
     public let balanceIndicator: Int // A fixed range from -4 to +4
+    public let tolerance: Int // the range in which the ship is balanced.
     
     public var currentTonnage: Int {
         return 0 // this should be a reducer function to total the tonnage of cargo

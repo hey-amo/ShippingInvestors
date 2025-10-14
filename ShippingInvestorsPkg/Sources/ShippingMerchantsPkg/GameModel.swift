@@ -56,7 +56,7 @@ public enum WeatherCategories: Int, CaseIterable {
 
 // Destinations
 public enum Destination: CaseIterable {
-    case london, gothenburg, norway, copenhagen, hamburg
+    case london, gothenburg, malmo, norway, hamburg
 }
 
 // 4 Docks or Shipping Lanes in the game, but only 3 are used until the 4th is unlocked
@@ -120,15 +120,15 @@ public struct Ship: Identifiable, Equatable {
     }
 
      public init(id: Int,
-                cardCapacity: Int,
                 tonnage: Int,
+                cardCapacity: Int,
                 timeCubesInitial: Int,
                 timeCubes: Int,
                 cargoLeft: [CargoCard] = [],
                 cargoRight: [CargoCard] = [],
-                destinations: Set<Destination> = [],
-                balanceIndicator: Int = 0,
-                tolerance: Int = 0) {
+                balanceIndicator: Int,
+                tolerance: Int,
+                destinations: Set<Destination> = []) {
         self.id = id
         self.cardCapacity = cardCapacity
         self.tonnage = tonnage
@@ -395,30 +395,40 @@ public struct Bank {
 // A struct to setup the game
 public struct GameSetupManager {
     public func setup(for players: [Player]) -> GameModel? {
+        var players = players
         guard players.count >= 2 && players.count <= 5 else {
             print ("Error: Number of players must be between 2 and 5.")
             return nil
         }
-        // Initialize the game model with the following steps:
-        // Create players with unique colours and avatars
-        // Player hand size capacity is 3
-        // Give each player 5 coins, 6 tokens in their colour
-        // Randomly select 1 player to be on turn first
-        // Prepare the cargo cards (60 cards, 10 of each colour) distribution
-        // Randomly shuffle the cargo cards and give each player 3 cards each
-        // Prepare a marketplace to get new cargo cards
-        // Create 18 ships
-        // Create the 4 shipping lanes, with 3 unlocked and 1 locked
-        // Clear game messages array
 
         print("Setting up game for \(players.count) players.")
-        prepareCargoCards()
-        prepareCargoMarketplace()
-        let ships: [Ship] = prepareShips()
-        prepareBuildingCards()
-        prepareBuildingCardMarketplace()
-        prepareDocks()
+
+        let _ = players.enumerated().map { index, player in
+            players.coins = 5 // each player starts with 5 coins
+            print("Player \(index + 1): ID=\(player.id),  Coins =\(player.coins) Avatar=\(player.avatar), BGColor=\(player.colorSchemeBG), FGColor=\(player.colorSchemeFG), isAI=\(player.isAI)")            
+        }
+
+        var cargoCardDeck = prepareCargoCards()
+        let topCards = cargoCardDeck.prefix(players.count + 1)
+        cargoCardDeck.removeFirst(min(players.count * 3, cargoCardDeck.count)) // remove the top cards from the deck
+         
+        // prepare the marketplace with cards (players + 1)
+        let cargoCardMarketplace = prepareCargoMarketplace(cargoCards: topCards)
+
+        // prepare ships
+        var ships: [Ship] = prepareShips()
+
+        // prepare buildings
+        let buildingDeck: [Building] = prepareBuildingCards()
+        let buildingMarketplace = prepareBuildingCardMarketplace(buidings: buildingDeck)
+
+        // prepare docks
+        // take the top 3 cards from the ships deck and add to docks
+        let topShips = ships.prefix(3)
+        ships.removeFirst(min(3, ships.count)) // remove the top 3 ships from        
+        let docks = prepareDocks(ships: topShips)
         let initialWeather: Int = 0 // initial weather
+        
         // randomly select a player to start first
         let startingPlayerIndex = Int.random(in: 0..<players.count)
         print ("Player \(players[startingPlayerIndex].id) will start first.")
@@ -429,20 +439,20 @@ public struct GameSetupManager {
             playerOnTurn: startingPlayerIndex,
             gameState: .gameSetup,
             shipsDeck: ships,
-            cargoCardDeck: [],
-            cargoCardMarketplace: [],
-            buildingDeck: [],
-            buildingMarketplace: [],
+            cargoCardDeck: cargoCardDeck,
+            cargoCardMarketplace: cargoCardMarketplace,
+            buildingDeck: buildingDeck,
+            buildingMarketplace: buildingMarketplace,
             weather: initialWeather,
             gameMessages: [],
-            docks: [],
+            docks: docks,
             messageStore: GameMessageStore()
         )
 
         return gameModel
     }
     
-    private func prepareCargoCards() {
+    private func prepareCargoCards() -> [CargoCard] {
         // Create 60 cargo cards, 10 of each colour, 2 in each colour are clone/special power
 
         var cards: [CargoCard] = []
@@ -463,27 +473,40 @@ public struct GameSetupManager {
         // Shuffle the cards
         let shuffledCards = cards.shuffled()
         print("Prepared and shuffled \(shuffledCards.count) cargo cards.")  
+
+        return shuffledCards
     }
-    private func prepareCargoMarketplace() {
-        // Draw 5 cards from the cargo card deck to form the marketplace
+    private func prepareCargoMarketplace(cargoCards: [CargoCard]) -> [CargoCard] { 
+        // Add cards from the provided cargo card deck to form the marketplace        
+        let marketplace = Array(cargoCards.prefix(count))
+        print("Prepared cargo card marketplace with \(marketplace.count) cards.")
+        return marketplace
     }
 
     private func prepareShips() -> [Ship] {
         // Create 18 ships with varying capacities, tonnage, time cubes, destinations
+        // If a ship has -1 tonnage, it means that it doesn't care about the tonnage
+        // If a ship has -1 cardCapacity, it means that it doesn't care about the card capacity
         // Shuffle the ships
         let ships: [Ship] = [
-            Ship(id: 1, cardCapacity: 4, tonnage: 10, timeCubesInitial: 3, timeCubes: 3, balanceIndicator: 0, tolerance: 1),
-            Ship(id: 2, cardCapacity: 5, tonnage: 12, timeCubesInitial: 4, timeCubes: 4, balanceIndicator: 1, tolerance: 1),
-            Ship(id: 3, cardCapacity: 6, tonnage: 15, timeCubesInitial: 5, timeCubes: 5, balanceIndicator: -1, tolerance: 2),
-            Ship(id: 4, cardCapacity: 7, tonnage: 18, timeCubesInitial: 6, timeCubes: 6, balanceIndicator: 2, tolerance: 2),
-            Ship(id: 5, cardCapacity: 8, tonnage: 20, timeCubesInitial: 7, timeCubes: 7, balanceIndicator: -2, tolerance: 3),
-            Ship(id: 6, cardCapacity: 9, tonnage: 22, timeCubesInitial: 8, timeCubes: 8, balanceIndicator: 0, tolerance: 2),
-            Ship(id: 7, cardCapacity: 10, tonnage: 25, timeCubesInitial: 9, timeCubes: 9, balanceIndicator: 1, tolerance: 3),
-            Ship(id: 8, cardCapacity: 11, tonnage: 28, timeCubesInitial: 10, timeCubes: 10, balanceIndicator: -1, tolerance: 4),
-            Ship(id: 9, cardCapacity: 12, tonnage: 30, timeCubesInitial: 11, timeCubes: 11, balanceIndicator: 2, tolerance: 4),
-            Ship(id: 10, cardCapacity: 13, tonnage: 32, timeCubesInitial: 12, timeCubes: 12, balanceIndicator: -2, tolerance: 5),
-            Ship(id: 11, cardCapacity: 14, tonnage: 35, timeCubesInitial: 13, timeCubes: 13, balanceIndicator: 0, tolerance: 3),
-            Ship(id: 12, cardCapacity: 15, tonnage: 40, timeCubesInitial: 14, timeCubes: 14, balanceIndicator: 1, tolerance: 5)
+            Ship(id: 1, tonnage: 6, cardCapacity: 3, timeCubesInitial: 4, timeCubes: 4, cargoLeft: [], cargoRight: [], balanceIndicator: 0, tolerance: 1, destinations: [.malmo, .norway]),
+            Ship(id: 2, tonnage: 6, cardCapacity: 4, timeCubesInitial: 3, timeCubes: 3, cargoLeft: [], cargoRight: [], balanceIndicator: 0, tolerance: 2, destinations: [.copenhagen, .hamburg]),
+            Ship(id: 3, tonnage: 6, cardCapacity: 5, timeCubesInitial: 4, timeCubes: 4, cargoLeft: [], cargoRight: [], balanceIndicator: 0, tolerance: 1, destinations: [.london, .malmo]),
+            Ship(id: 4, tonnage: -1, cardCapacity: 3, timeCubesInitial: 3, timeCubes: 3, cargoLeft: [], cargoRight: [], balanceIndicator: 0, tolerance: 3, destinations: [.norway, .copenhagen]),
+            Ship(id: 5, tonnage: 8, cardCapacity: -1, timeCubesInitial: 4, timeCubes: 4, cargoLeft: [], cargoRight: [], balanceIndicator: 0, tolerance: 3, destinations: [.hamburg, .london]),
+            Ship(id: 6, tonnage: 8, cardCapacity: 4, timeCubesInitial: 4, timeCubes: 4, cargoLeft: [], cargoRight: [], balanceIndicator: 0, tolerance: 2, destinations: [.malmo, .hamburg]),
+            Ship(id: 7, tonnage: 8, cardCapacity: 6, timeCubesInitial: 5, timeCubes: 5, cargoLeft: [], cargoRight: [], balanceIndicator: 0, tolerance: 2, destinations: [.copenhagen, .norway]),
+            Ship(id: 8, tonnage: -1, cardCapacity: 4, timeCubesInitial: 3, timeCubes: 3, cargoLeft: [], cargoRight: [], balanceIndicator: 0, tolerance: 2, destinations: [.london, .copenhagen]),
+            Ship(id: 9, tonnage: 10, cardCapacity: 7, timeCubesInitial: 3, timeCubes: 5, cargoLeft: [], cargoRight: [], balanceIndicator: 0, tolerance: 1, destinations: [.malmo, .london]),
+            Ship(id: 10, tonnage: 10, cardCapacity: 8, timeCubesInitial: 3, timeCubes: 5, cargoLeft: [], cargoRight: [], balanceIndicator: 0, tolerance: 2, destinations: [.norway, .hamburg]),
+            Ship(id: 11, tonnage: 10, cardCapacity: -1, timeCubesInitial: 3, timeCubes: 4, cargoLeft: [], cargoRight: [], balanceIndicator: 0, tolerance: 2, destinations: [.copenhagen, .malmo]),
+            Ship(id: 12, tonnage: 12, cardCapacity: 5, timeCubesInitial: 3, timeCubes: 5, cargoLeft: [], cargoRight: [], balanceIndicator: 0, tolerance: 1, destinations: [.hamburg, .norway]),
+            Ship(id: 13, tonnage: 12, cardCapacity: 6, timeCubesInitial: 3, timeCubes: 5, cargoLeft: [], cargoRight: [], balanceIndicator: 0, tolerance: 2, destinations: [.london, .norway]),
+            Ship(id: 14, tonnage: 12, cardCapacity: -1, timeCubesInitial: 3, timeCubes: 5, cargoLeft: [], cargoRight: [], balanceIndicator: 0, tolerance: 3, destinations: [.malmo, .copenhagen]),
+            Ship(id: 15, tonnage: 12, cardCapacity: -1, timeCubesInitial: 3, timeCubes: 5, cargoLeft: [], cargoRight: [], balanceIndicator: 0, tolerance: 1, destinations: [.hamburg, .malmo]),
+            Ship(id: 16, tonnage: 15, cardCapacity: 6, timeCubesInitial: 3, timeCubes: 5, cargoLeft: [], cargoRight: [], balanceIndicator: 0, tolerance: 2, destinations: [.norway, .london]),
+            Ship(id: 17, tonnage: 15, cardCapacity: 8, timeCubesInitial: 3, timeCubes: 6, cargoLeft: [], cargoRight: [], balanceIndicator: 0, tolerance: 2, destinations: [.copenhagen, .hamburg]),
+            Ship(id: 18, tonnage: -1, cardCapacity: 8, timeCubesInitial: 3, timeCubes: 6, cargoLeft: [], cargoRight: [], balanceIndicator: 0, tolerance: 3, destinations: [.london, .hamburg]),            
         ]
 
         // Shuffle the ships
@@ -492,14 +515,49 @@ public struct GameSetupManager {
         return shuffledShips
     }
     private func prepareBuildingCards() {
-        // Create 12 building cards with varying costs and effects
+        // Create 10 building cards with varying costs and effects
+        let buildings: [BuildingCard] = [            
+            BuildingCard(id: UUID(), name: "Crane", description: "Move 1 cargo card to another ship.", cost: 5, effect: "Move 1 cargo", imageName: "crane", passiveOrActive: true),
+            BuildingCard(id: UUID(), name: "Office", description: "Gain 2 coins when delivering.", cost: 6, effect: "Payout Bonus +2", imageName: "luxury_cabins", passiveOrActive: false),
+            BuildingCard(id: UUID(), name: "Reinforced Hull", description: "Increase tonnage capacity by 2.", cost: 8, effect: "Tonnage +2", imageName: "reinforced_hull", passiveOrActive: false),
+            BuildingCard(id: UUID(), name: "Warehouse", description: "Increase card capacity by 2.", cost: 7, effect: "Card Capacity +2", imageName: "warehouse", passiveOrActive: false),
+            BuildingCard(id: UUID(), name: "Lighthouse", description: "Ignore bad weather effects once per game.", cost: 10, effect: "Ignore Weather", imageName: "weather_radar", passiveOrActive: true),            
+            BuildingCard(id: UUID(), name: "Customs House", description: "Add 3 time cubes to 1 ship", cost: 7, effect: "Add Time Cubes +3", imageName: "customs_house", passiveOrActive: true),
+            BuildingCard(id: UUID(), name: "Luxury Cabins", description: "Gain 1 coin when passing.", cost: 4, effect: "Pass Bonus +1", imageName: "office", passiveOrActive: false),
+            BuildingCard(id: UUID(), name: "Ropery", description: "May load 1 cargo card for free.", cost: 9, effect: "Load 1 cargo free", imageName: "roperty", passiveOrActive: true),
+            BuildingCard(id: UUID(), name: "Sail Loft", description: "Increase tolerance by 1.", cost: 6, effect: "Tolerance +1", imageName: "sail_loft", passiveOrActive: false), 
+            BuildingCard(id: UUID(), name: "Extra Crew", description: "Add 1 time cube to this ship.", cost: 5, effect: "Add Time Cubes +1", imageName: "extra_crew", passiveOrActive: false),            
+        ]
+        
         // Shuffle the building cards
+        let shuffledBuildings = buildings.shuffled()
+        print ("Prepared and shuffled \(shuffledBuildings.count) building cards.")
+        return shuffledBuildings
     }
-    private func prepareBuildingCardMarketplace() {
+    private func prepareBuildingCardMarketplace(from: [BuildingCard]) -> [BuildingCard] {
         // Draw 3 building cards from the building card deck to form the marketplace
+        let count = min(3, from.count)
+        let marketplace = Array(from.prefix(count))
+        print("Prepared building card marketplace with \(marketplace.count) cards.")
+        return marketplace  
     }
-    private func prepareDocks() {
+    private func prepareDocks(from: ships: [Ship]) -> [Docks] {
         // Create 4 docks, with 3 unlocked and 1 locked
+        var docks: [Docks] = [
+            Docks(id: UUID(), improvements: [], investors: [], ship: nil, isLocked: false),
+            Docks(id: UUID(), improvements: [], investors: [], ship: nil, isLocked: false),
+            Docks(id: UUID(), improvements: [], investors: [], ship: nil, isLocked: false),
+            Docks(id: UUID(), improvements: [], investors: [], ship: nil, isLocked: true),
+        ]
+
+        // Assign ships to docks that are not locked
+        for (index, ship) in ships.enumerated() {
+            if index < docks.count && !docks[index].isLocked {
+                docks[index].ship = ship
+            }
+        }
+
+        return docks
     }
 
 }

@@ -11,11 +11,23 @@ import XCTest
 
 final class GameMessageTests: XCTestCase {
     
+    var messageStore: GameMessageStore?
+    
     override func setUpWithError() throws {
         // Setup
+        self.messageStore = GameMessageStore()
     }
 
     override func tearDownWithError() throws {
         // Teardown
+        self.messageStore = nil
+    }
+    
+    func testAddMessage() throws {
+        
+    }
+    
+    func testClearMessages() throws {
+        
     }
 }

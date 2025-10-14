@@ -542,11 +542,6 @@ public class GameModel {
 // MARK: Game Setup Manager
 // ------------------------------------
 
-
-
-/*
-
-// A struct to setup the game
 public struct GameSetupManager {
     public func setup(for players: [Player]) -> GameModel? {
         var players = players
@@ -556,45 +551,8 @@ public struct GameSetupManager {
         }
 
         print("Setting up game for \(players.count) players.")
-
+        
+        return nil
     }
-    
-   
-    private func prepareCargoMarketplace(cargoCards: [CargoCard]) -> [CargoCard] {
-        // Add cards from the provided cargo card deck to form the marketplace
-        let marketplace = Array(cargoCards.prefix(count))
-        print("Prepared cargo card marketplace with \(marketplace.count) cards.")
-        return marketplace
-    }
-
-    
-    
-    private func prepareBuildingCardMarketplace(from: [BuildingCard]) -> [BuildingCard] {
-        // Draw 3 building cards from the building card deck to form the marketplace
-        let count = min(3, from.count)
-        let marketplace = Array(from.prefix(count))
-        print("Prepared building card marketplace with \(marketplace.count) cards.")
-        return marketplace
-    }
-    private func prepareDocks(from: ships: [Ship]) -> [Docks] {
-        // Create 4 docks, with 3 unlocked and 1 locked
-        var docks: [Docks] = [
-            Docks(id: UUID(), improvements: [], investors: [], ship: nil, isLocked: false),
-            Docks(id: UUID(), improvements: [], investors: [], ship: nil, isLocked: false),
-            Docks(id: UUID(), improvements: [], investors: [], ship: nil, isLocked: false),
-            Docks(id: UUID(), improvements: [], investors: [], ship: nil, isLocked: true),
-        ]
-
-        // Assign ships to docks that are not locked
-        for (index, ship) in ships.enumerated() {
-            if index < docks.count && !docks[index].isLocked {
-                docks[index].ship = ship
-            }
-        }
-
-        return docks
-    }
-
 }
 
-*/

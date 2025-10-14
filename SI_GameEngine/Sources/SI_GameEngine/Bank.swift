@@ -13,16 +13,25 @@ public struct Bank {
     public var balance: Int {
         return _balance
     }
-    public mutating func credit(amount: Int) {
+    
+    public init(balance: Int = 0) {
+        var balance = balance
+        if balance < 0 { balance = 0 }
+        self._balance = balance
+    }
+    public mutating func credit(amount: Int) -> Int {
         // Add amount to balance
-        guard canCredit(amount: amount) else { return }
+        guard canCredit(amount: amount) else { return amount }
         self._balance += amount
+        return self._balance
     }
-    public mutating func debit(amount: Int) {
+    public mutating func debit(amount: Int) -> Int {
         // Subtract amount from balance
-        guard canDebit(amount: amount) else { return }
+        guard canDebit(amount: amount) else { return amount }
         self._balance -= amount
+        return self._balance
     }
+    
     public func canDebit(amount: Int) -> Bool {
         guard amount >= 0 else { return false }
         guard balance >= amount else { return false }

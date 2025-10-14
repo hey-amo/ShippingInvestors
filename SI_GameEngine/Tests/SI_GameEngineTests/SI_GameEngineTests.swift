@@ -1,7 +1,7 @@
 import XCTest
-@testable import ShippingMerchantsPkg
+@testable import SI_GameEngine
 
-final class ShippingMerchantsPkgTests: XCTestCase {
+final class SI_GameEngineTests: XCTestCase {
     func testExample() throws {
         // XCTest Documentation
         // https://developer.apple.com/documentation/xctest

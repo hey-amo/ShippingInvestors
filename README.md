@@ -31,6 +31,6 @@ When a player loads cargo cards onto a ship they must be:
 
 --
 
-Language: Swift, SwiftUI
-Backend: SwiftData
-Uses Swift package
+- Language: Swift, SwiftUI
+- Backend: SwiftData (TBD)
+- Uses Swift package

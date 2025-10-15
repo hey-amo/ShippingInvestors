@@ -169,7 +169,7 @@ public struct CargoCard: Identifiable, Equatable {
 }
 
 extension CargoCard {
-    private func prepareCargoCards() -> [CargoCard] {
+    public static func prepareCargoCards() -> [CargoCard] {
         // Create cargo cards, 12 of each colour, 2 in each colour are clone/special power
         // -1 means that the cargo is a clone card, and cannot be played by itself
         
@@ -340,7 +340,7 @@ public struct BuildingCard: Identifiable, Equatable {
 }
 
 extension BuildingCard {
-    private func prepareBuildingCards() -> [BuildingCard] {
+    public static func prepareBuildingCards() -> [BuildingCard] {
         // Create 10 building cards with varying costs and effects
         let buildings: [BuildingCard] = [
             BuildingCard(id: UUID(), name: "Crane", description: "Move 1 cargo card to another ship.", cost: 5, effect: "Move 1 cargo", imageName: "crane", passiveOrActive: true),
@@ -374,6 +374,18 @@ public struct Dock {
     public var investors: [Player] // a collection of players who have invested in this lane - limited 3 seats. A player can have 0, or multiple seats.
     public var ship: Ship? // the ship currently at this lane (if any)
     public var isLocked: Bool // whether the lane is locked or unlocked
+}
+
+extension Dock {
+    public static func prepareDocks() -> [Dock] {
+        let docks = [
+            Dock(id: UUID(), improvements: [], investors: [], ship: nil, isLocked: false),
+            Dock(id: UUID(), improvements: [], investors: [], ship: nil, isLocked: false),
+            Dock(id: UUID(), improvements: [], investors: [], ship: nil, isLocked: false),
+            Dock(id: UUID(), improvements: [], investors: [], ship: nil, isLocked: true),
+        ]
+        return docks
+    }
 }
 
 // ------------------------------------
@@ -455,7 +467,7 @@ public struct Ship: Identifiable, Equatable {
 }
 
 extension Ship {
-    private func prepareShips() -> [Ship] {
+    public static func prepareShips() -> [Ship] {
         // Create 18 ships with varying capacities, tonnage, time cubes, destinations
         // If a ship has -1 tonnage, it means that it doesn't care about the tonnage
         // If a ship has -1 cardCapacity, it means that it doesn't care about the card capacity
@@ -544,15 +556,25 @@ public class GameModel {
 
 public struct GameSetupManager {
     public func setup(for players: [Player]) -> GameModel? {
-        var players = players
+        let players = players
         guard players.count >= 2 && players.count <= 5 else {
             print ("Error: Number of players must be between 2 and 5.")
             return nil
         }
 
         print("Setting up game for \(players.count) players.")
+        let cargoDeck: [CargoCard] = CargoCard.prepareCargoCards()
+        let shipDeck: [Ship] = Ship.prepareShips()
+        let buildingCards: [BuildingCard] = BuildingCard.prepareBuildingCards()
+        let cargoMarketplace: [CargoCard] = []
+        let shipDiscardDeck: [Ship] = []
+        let docks: [Dock] = Dock.prepareDocks()
+        let weather: Int = 0
         
-        return nil
+        print("Preparing game model.")
+        let gameModel = GameModel(gameState: .gameSetup, players: players, playerOnTurn: 0, cargoDeck: cargoDeck, cargoMarketplace: cargoMarketplace, buildingDeck: buildingCards, weather: weather, shipDeck: shipDeck, shipDiscardDeck: shipDiscardDeck, docks: docks)
+        
+        return gameModel
     }
 }
 

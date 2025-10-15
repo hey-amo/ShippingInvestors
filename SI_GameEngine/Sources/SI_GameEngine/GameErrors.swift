@@ -7,12 +7,12 @@
 
 import Foundation
 
-protocol GameErrorProtocol: Error, CustomStringConvertible {
+public protocol GameErrorProtocol: Error, CustomStringConvertible {
     var domain: String { get }          // e.g. "Numeric", "Gameplay", etc.
     var errorDescription: String { get }
 }
 
-enum GameError: GameErrorProtocol, LocalizedError {
+public enum GameError: GameErrorProtocol, LocalizedError {
     // MARK: - Model / State Errors
     case modelIsNil
     case invalidState(reason: String)
@@ -30,7 +30,7 @@ enum GameError: GameErrorProtocol, LocalizedError {
     // MARK: - Fallback
     case unknown
         
-    var domain: String {
+    public var domain: String {
         switch self {
         case .modelIsNil, .invalidState: return "State"
         case .negativeValue, .outOfRange: return "Numeric"
@@ -40,7 +40,7 @@ enum GameError: GameErrorProtocol, LocalizedError {
         }
     }
     
-    var errorDescription: String {
+    public var errorDescription: String {
            switch self {
            case .modelIsNil:
                return "The game model is nil. Initialisation failed."
@@ -59,5 +59,5 @@ enum GameError: GameErrorProtocol, LocalizedError {
            }
        }
 
-    var description: String { "[\(domain)] \(errorDescription)" }
+    public var description: String { "[\(domain)] \(errorDescription)" }
 }

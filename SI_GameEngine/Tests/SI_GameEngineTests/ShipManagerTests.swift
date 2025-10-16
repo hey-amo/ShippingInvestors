@@ -8,9 +8,13 @@
 import XCTest
 @testable import SI_GameEngine
 
+/// Ship Manager
 fileprivate struct ShipManager {
     private weak var ship: Ship?
     
+    // Remove 'n' time cubes
+    /// 1. Must be on a valid ship (not nil)
+    /// 2. There must be positive integer in time cubes remaining
     public func removeTimeCube(_ amount: Int = 1) throws -> Ship? {
         guard let ship = ship else {
             print ("No ship found")
@@ -24,6 +28,13 @@ fileprivate struct ShipManager {
         return ship
     }
     
+    // Add 'n' cargo cards
+    /// 1. Must be on a valid ship (not nil)
+    /// 2. Cannot add 0 cargo cards
+    /// 3. All cargo cards supplied must be same colour
+    /// 4. Cannot add cargo cards if it exeeds card capacity (must be exact)
+    /// 5. Cannot add cargo cards if it exceeds tonnage (must be exact)
+    /// 6. When cargo cards are added, update the balance of the ship
     public func addCargo(cards: [CargoCard], side: Ship.Side) throws -> Ship {
         guard let ship = ship else {
             print ("No ship found")
@@ -58,7 +69,7 @@ final class ShipManagerTests: XCTestCase {
     
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.
-        let ships = Ship.prepareShips().first
+        self.ship = Ship.prepareShips().first        
     }
 
     override func tearDownWithError() throws {
@@ -70,7 +81,11 @@ final class ShipManagerTests: XCTestCase {
         
     }
 
-    func testAddCargoCardsToShip() throws {
+    func testAddCargoCardsToShip_Fails() throws {
+        
+    }
+    
+    func testRemoveSingleTimeCube() throws {
         
     }
     

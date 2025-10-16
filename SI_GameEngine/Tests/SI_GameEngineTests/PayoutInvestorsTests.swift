@@ -51,7 +51,7 @@ extension Dock {
         //
         // print "Player credited: $coins"
         
-        // Use the Bank to credit the player's account (don't set it directly)
+        // Use the Bank to credit the player's account (don't set it directly)        
     }
 }
 

@@ -8,85 +8,112 @@
 import XCTest
 @testable import SI_GameEngine
 
-/// Ship Manager
-fileprivate struct ShipManager {
-    private weak var ship: Ship?
-    
-    // Remove 'n' time cubes
-    /// 1. Must be on a valid ship (not nil)
-    /// 2. There must be positive integer in time cubes remaining
-    public func removeTimeCube(_ amount: Int = 1) throws -> Ship? {
-        guard let ship = ship else {
-            print ("No ship found")
-            throw CommonError.invalidAction(name: "Gameplay", reason: "No ship found")
-        }
-        guard (ship.timeCubesRemaining != 0) else {
-            print ("This ship is at 0 time")
-            throw CommonError.invalidAction(name: "Gameplay", reason: "Ship is at 0 time")
-        }
-        ship.timeCubesRemaining -= amount
-        return ship
-    }
-    
-    // Add 'n' cargo cards
-    /// 1. Must be on a valid ship (not nil)
-    /// 2. Cannot add 0 cargo cards
-    /// 3. All cargo cards supplied must be same colour
-    /// 4. Cannot add cargo cards if it exeeds card capacity (must be exact)
-    /// 5. Cannot add cargo cards if it exceeds tonnage (must be exact)
-    /// 6. When cargo cards are added, update the balance of the ship
-    public func addCargo(cards: [CargoCard], side: Ship.Side) throws -> Ship {
-        guard let ship = ship else {
-            print ("No ship found")
-            throw CommonError.invalidAction(name: "Gameplay", reason: "No ship found")
-        }
-        guard (cards.count > 0) else {
-            print ("Cannot add 0 cargo cards")
-            throw CommonError.invalidAction(name: "Gameplay", reason: "Cannot add 0 cargo cards")
-        }
-        // All cargo cards supplied must be same colour
-                
-        // Cannot add cards if its above its capacity of cards
-        let sumCargo = (ship.cargo.count + cards.count)
-        guard sumCargo <= ship.cardCapacity else {
-            print ("Ship can only hold `\(ship.cardCapacity)` cards")
-            throw CommonError.invalidAction(name: "Gameplay", reason: "Ship can only hold \(ship.cardCapacity) cards")
-        }
-        
-        // Needs: Cannot add cards if its above its tonnage
-        
-        
-        // Add cargo cards to the side the player selected
-        ship.cargo[side]?.append(contentsOf: cards)
-        
-        return ship
-    }
-}
-
 final class ShipManagerTests: XCTestCase {
 
-    var ship: Ship?
-    
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-        self.ship = Ship.prepareShips().first        
+    // Helper to create a deterministic ship for tests
+    private func makeShip(id: Int = 999,
+                          tonnage: Int = 10,
+                          cardCapacity: Int = 4,
+                          timeCubesRemaining: Int = 3,
+                          left: [CargoCard] = [],
+                          right: [CargoCard] = []) -> Ship
+    {
+        return Ship(id: id,
+                    tonnage: tonnage,
+                    cardCapacity: cardCapacity,
+                    timeCubesInitial: timeCubesRemaining,
+                    timeCubesRemaining: timeCubesRemaining,
+                    cargoLeft: left,
+                    cargoRight: right,
+                    destinations: [.london],
+                    balanceIndicator: 0,
+                    tolerance: 1)
     }
 
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-        ship = nil
-    }
-    
     func testTimeCube_NoShip_Fail() throws {
-        
+        let manager = ShipManager(ship: nil)
+        XCTAssertThrowsError(try manager.removeTimeCube()) { error in
+            XCTAssertEqual(error as? ShipManagerError, ShipManagerError.noShip)
+        }
+    }
+
+    func testRemoveSingleTimeCube() throws {
+        let ship = makeShip(timeCubesRemaining: 2)
+        let manager = ShipManager(ship: ship)
+
+        let updated = try manager.removeTimeCube()
+        XCTAssertEqual(updated.timeCubesRemaining, 1)
+        // remove again to zero
+        let updated2 = try manager.removeTimeCube()
+        XCTAssertEqual(updated2.timeCubesRemaining, 0)
+        // now further removals should error with shipAtZeroTime
+        XCTAssertThrowsError(try manager.removeTimeCube()) { error in
+            XCTAssertEqual(error as? ShipManagerError, ShipManagerError.shipAtZeroTime)
+        }
     }
 
     func testAddCargoCardsToShip_Fails() throws {
-        
+        // Prepare cards
+        let red1 = CargoCard(id: UUID(), colour: .red, tonnage: 2, special: false)
+        let red2 = CargoCard(id: UUID(), colour: .red, tonnage: 2, special: false)
+        let blue1 = CargoCard(id: UUID(), colour: .blue, tonnage: 2, special: false)
+
+        // 1) No ship
+        var manager = ShipManager(ship: nil)
+        XCTAssertThrowsError(try manager.addCargo(cards: [red1], side: .left)) { error in
+            XCTAssertEqual(error as? ShipManagerError, ShipManagerError.noShip)
+        }
+
+        // 2) Cannot add zero cards
+        let ship1 = makeShip(tonnage: 10, cardCapacity: 4)
+        manager = ShipManager(ship: ship1)
+        XCTAssertThrowsError(try manager.addCargo(cards: [], side: .left)) { error in
+            XCTAssertEqual(error as? ShipManagerError, ShipManagerError.cannotAddZeroCards)
+        }
+
+        // 3) Mixed colours
+        XCTAssertThrowsError(try manager.addCargo(cards: [red1, blue1], side: .left)) { error in
+            XCTAssertEqual(error as? ShipManagerError, ShipManagerError.mixedColours)
+        }
+
+        // 4) Capacity exceeded
+        let ship2 = makeShip(tonnage: 10, cardCapacity: 2, left: [red1]) // already 1 card on left
+        manager = ShipManager(ship: ship2)
+        // trying to add 2 cards will exceed capacity 2 (1 existing + 2 > 2)
+        XCTAssertThrowsError(try manager.addCargo(cards: [red1, red2], side: .left)) { error in
+            // unwrap then match enum case
+            guard let shipError = error as? ShipManagerError else {
+                return XCTFail("Unexpected error type")
+            }
+            if case let .capacityExceeded(max) = shipError {
+                XCTAssertEqual(max, 2)
+            } else {
+                XCTFail("Expected capacityExceeded error")
+            }
+        }
+
+        // 5) Tonnage exceeded
+        let ship3 = makeShip(tonnage: 3, cardCapacity: 10) // small tonnage
+        manager = ShipManager(ship: ship3)
+        // adding a card of tonnage 2 twice (4) will exceed 3
+        XCTAssertThrowsError(try manager.addCargo(cards: [red1, red2], side: .right)) { error in
+            guard let shipError = error as? ShipManagerError else {
+                return XCTFail("Unexpected error type")
+            }
+            if case let .tonnageExceeded(max) = shipError {
+                XCTAssertEqual(max, 3)
+            } else {
+                XCTFail("Expected tonnageExceeded error")
+            }
+        }
+
+        // 6) Successful add should not throw
+        let ship4 = makeShip(tonnage: 10, cardCapacity: 5)
+        manager = ShipManager(ship: ship4)
+        XCTAssertNoThrow(try manager.addCargo(cards: [red1, red2], side: .left))
+        XCTAssertEqual(ship4.totalCargoCards, 2)
+        // cargo appended to left side
+        XCTAssertEqual(ship4.cargo[.left]?.count, 2)
+
     }
-    
-    func testRemoveSingleTimeCube() throws {
-        
-    }
-    
 }

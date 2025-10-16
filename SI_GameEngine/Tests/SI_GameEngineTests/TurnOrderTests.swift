@@ -6,16 +6,48 @@
 //
 
 import XCTest
-
 @testable import SI_GameEngine
 
-final class TurnOrderTests: XCTestCase {
+fileprivate struct TestPlayer: TurnTaking {
+    let playerId: Int
+}
 
-    override func setUpWithError() throws {
-        // Put setup code here.
+final class TurnOrderManagerTests: XCTestCase {
+    
+    func testInitialActivePlayer_IsLowestPlayerId() {
+        let players = [TestPlayer(playerId: 3), TestPlayer(playerId: 1), TestPlayer(playerId: 2)]
+        let manager = TurnOrderManager(players: players)
+        
+        // players should be sorted by playerId
+        let sortedIds = manager.players.map { $0.playerId }
+        XCTAssertEqual(sortedIds, [1, 2, 3], "Players should be sorted by playerId on init")
+        
+        // active player should be the lowest id (first in sorted list)
+        XCTAssertEqual(manager.activePlayer.playerId, 1, "Initial active player should be the lowest playerId")
     }
-
-    override func tearDownWithError() throws {
-        // Put teardown code here.
+    
+    func testNextTurn_CyclesThroughPlayers() {
+        let players = [TestPlayer(playerId: 3), TestPlayer(playerId: 1), TestPlayer(playerId: 2)]
+        let manager = TurnOrderManager(players: players)
+        
+        XCTAssertEqual(manager.activePlayer.playerId, 1)
+        manager.nextTurn()
+        XCTAssertEqual(manager.activePlayer.playerId, 2)
+        manager.nextTurn()
+        XCTAssertEqual(manager.activePlayer.playerId, 3)
+        manager.nextTurn()
+        // wraps around
+        XCTAssertEqual(manager.activePlayer.playerId, 1)
+    }
+    
+    func testSinglePlayer_NextTurnNoChange() {
+        let players = [TestPlayer(playerId: 5)]
+        let manager = TurnOrderManager(players: players)
+        
+        XCTAssertEqual(manager.activePlayer.playerId, 5)
+        manager.nextTurn()
+        XCTAssertEqual(manager.activePlayer.playerId, 5)
+        manager.nextTurn()
+        XCTAssertEqual(manager.activePlayer.playerId, 5)
     }
 }

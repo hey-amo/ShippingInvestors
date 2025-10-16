@@ -46,6 +46,7 @@ extension Dock {
         }
         // Total up cargo cards on both sides
         let totalCargoCards = ship.totalCargoCards
+        print ("totalCargoCards = \(totalCargoCards)\n")
         
         // Payout: A player is paid out `tokens they have` * `total cargo cards`
         //

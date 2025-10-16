@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Combine
 
 public enum GameMessageType: CaseIterable {
     case info, warning, error, other
@@ -24,42 +25,42 @@ public struct GameMessage {
 }
 
 /// Responsible for storing, trimming and exposing game messages.
-/// Keeps newest-first ordering, trims oldest messages when capacity exceeded,
+/// Keeps newest-first ordering, trims oldest messages when capacity exceeded
 /// and provides clear() functionality.
-public final class GameMessageStore {
-    private(set) var messages: [GameMessage] = []
+/// Uses Combine publisher so any observer can react to new logs.
+public final class GameMessageStore: ObservableObject {
+    // Published messages — automatically triggers Combine updates
+    @Published private(set) public var messages: [GameMessage] = []
+    
     public static let maxMessages: Int = 50
 
+    // Combine subject for broadcasting single messages
+    public let messagePublisher = PassthroughSubject<GameMessage, Never>()
+    
     public init(messages: [GameMessage] = []) {
-        // keep newest-first and trim to capacity
+        // Keep newest-first and trim
         let ordered = messages.sorted { $0.time > $1.time }
-        if ordered.count > Self.maxMessages {
-            self.messages = Array(ordered.prefix(Self.maxMessages))
-        } else {
-            self.messages = ordered
-        }
+        self.messages = Array(ordered.prefix(Self.maxMessages))
     }
 
-    // Add a timestamped text message
+    // Add a text message
     public func add(_ text: String, type: GameMessageType = .info) {
-        add(GameMessage(message: text, messageType: type, time: Date()))
+        add(GameMessage(message: text, messageType: type))
     }
 
-    // Add a GameMessage instance; ensures newest-first order and trims oldest by date
+    // Add a GameMessage instance
     public func add(_ message: GameMessage) {
-        messages.append(message)
-        messages.sort { $0.time > $1.time } // newest first
+        messages.insert(message, at: 0) // newest first
         if messages.count > Self.maxMessages {
-            messages = Array(messages.prefix(Self.maxMessages))
+            messages.removeLast(messages.count - Self.maxMessages)
         }
+        messagePublisher.send(message)
     }
 
-    // Remove all messages
     public func clear() {
         messages.removeAll()
     }
 
-    // Read-only view (newest-first)
     public var newestFirst: [GameMessage] { messages }
     public var count: Int { messages.count }
 }

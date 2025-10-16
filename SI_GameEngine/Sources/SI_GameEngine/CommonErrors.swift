@@ -1,5 +1,5 @@
 //
-//  GameErrors.swift
+//  CommonErrors.swift
 //  SI_GameEngine
 //
 //  Created by Amarjit on 14/10/2025.
@@ -7,34 +7,33 @@
 
 import Foundation
 
-public protocol GameErrorProtocol: Error, CustomStringConvertible {
-    var domain: String { get }          // e.g. "Numeric", "Gameplay", etc.
+public protocol CommonErrorProtocol: Error, CustomStringConvertible {
+    var domain: String { get }  // e.g. "Numeric", "Gameplay", etc.
     var errorDescription: String { get }
 }
 
-public enum GameError: GameErrorProtocol, LocalizedError {
-    // MARK: - Model / State Errors
+public enum CommonError: CommonErrorProtocol, LocalizedError {
+    // Model & State Errors
     case modelIsNil
     case invalidState(reason: String)
     
-    // MARK: - Numeric Errors
+    // Numeric Errors
     case negativeValue(parameter: String, value: Int)
     case outOfRange(parameter: String, value: Int, min: Int, max: Int)
 
-    // MARK: - Resource Errors
+    // Resource Errors
     case notEnoughCoins(required: Int, available: Int)
     
-    // MARK: - Action Errors
+    // Action Errors
     case invalidAction(name: String, reason: String)
     
-    // MARK: - Fallback
     case unknown
         
     public var domain: String {
         switch self {
         case .modelIsNil, .invalidState: return "State"
         case .negativeValue, .outOfRange: return "Numeric"
-        case .notEnoughCoins: return "Resource"
+        case .notEnoughCoins: return "Funds"
         case .invalidAction: return "Gameplay"
         case .unknown: return "General"
         }

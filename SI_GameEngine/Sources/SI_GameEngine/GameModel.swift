@@ -169,6 +169,11 @@ public struct CargoCard: Identifiable, Equatable {
 }
 
 extension CargoCard {
+    public func totalCargoCardsTonnage(cards: [CargoCard]) -> Int {
+        // use map to total up the cargoCards tonnage and return the integer
+        return 0
+    }
+    
     public static func prepareCargoCards() -> [CargoCard] {
         // Create cargo cards, 12 of each colour, 2 in each colour are clone/special power
         // -1 means that the cargo is a clone card, and cannot be played by itself
@@ -349,10 +354,10 @@ extension BuildingCard {
             BuildingCard(id: UUID(), name: "Warehouse", description: "Increase card capacity by 2.", cost: 7, effect: "Card Capacity +2", imageName: "warehouse", passiveOrActive: false),
             BuildingCard(id: UUID(), name: "Lighthouse", description: "Ignore bad weather effects once per game.", cost: 10, effect: "Ignore Weather", imageName: "weather_radar", passiveOrActive: true),
             BuildingCard(id: UUID(), name: "Customs House", description: "Add 3 time cubes to 1 ship", cost: 7, effect: "Add Time Cubes +3", imageName: "customs_house", passiveOrActive: true),
-            BuildingCard(id: UUID(), name: "Luxury Cabins", description: "Gain 1 coin when passing.", cost: 4, effect: "Pass Bonus +1", imageName: "office", passiveOrActive: false),
+            BuildingCard(id: UUID(), name: "Cooperage", description: "Gain 1 coin when passing.", cost: 4, effect: "Pass Bonus +1", imageName: "office", passiveOrActive: false),
             BuildingCard(id: UUID(), name: "Ropery", description: "May load 1 cargo card for free.", cost: 9, effect: "Load 1 cargo free", imageName: "roperty", passiveOrActive: true),
             BuildingCard(id: UUID(), name: "Sail Loft", description: "Increase tolerance by 1.", cost: 6, effect: "Tolerance +1", imageName: "sail_loft", passiveOrActive: false),
-            BuildingCard(id: UUID(), name: "Extra Crew", description: "Add 1 time cube to this ship.", cost: 5, effect: "Add Time Cubes +1", imageName: "extra_crew", passiveOrActive: false),
+            BuildingCard(id: UUID(), name: "Pub", description: "Add 1 time cube to this ship.", cost: 5, effect: "Add Time Cubes +1", imageName: "extra_crew", passiveOrActive: false),
         ]
         
         // Shuffle the building cards
@@ -368,12 +373,20 @@ extension BuildingCard {
 
 // 4 Docks or Shipping Lanes in the game, but only 3 are used until the 4th is unlocked
 // Shipping lanes
-public struct Dock {
+public class Dock {
     public let id: UUID
     public var improvements: [BuildingCard] // a collection of building cards (improvements)
     public var investors: [Player] // a collection of players who have invested in this lane - limited 3 seats. A player can have 0, or multiple seats.
     public var ship: Ship? // the ship currently at this lane (if any)
     public var isLocked: Bool // whether the lane is locked or unlocked
+    
+    init(id: UUID, improvements: [BuildingCard], investors: [Player], ship: Ship? = nil, isLocked: Bool) {
+        self.id = id
+        self.improvements = improvements
+        self.investors = investors
+        self.ship = ship
+        self.isLocked = isLocked
+    }
 }
 
 extension Dock {
@@ -386,6 +399,24 @@ extension Dock {
         ]
         return docks
     }
+    
+    // A dock can only have 3 building cards
+    // A dock cannot have duplicating building cards
+    public func addImprovement(buildingCard: BuildingCard) {
+        guard (self.improvements.count >= 0 && self.improvements.count <= 3) else {
+            print ("Cannot add improvment - At maximum")
+            return
+        }
+        // use filter.where to find any matching building cards
+        let results = self.improvements.filter { item in
+            return item.id == buildingCard.id
+        }
+        guard (results.count == 0) else {
+            print ("This dock already has `\(buildingCard.name)`") // needs to handle pluralisation?
+            return
+        }
+        self.improvements.append(buildingCard)
+    }
 }
 
 // ------------------------------------
@@ -393,7 +424,7 @@ extension Dock {
 // ------------------------------------
 
 // Ships can never have tonnage or cargo cards more than their capacity
-public struct Ship: Identifiable, Equatable {
+public class Ship: Identifiable, Equatable {
     public enum Side: CaseIterable, Hashable {
         case left, right
     }
@@ -402,7 +433,7 @@ public struct Ship: Identifiable, Equatable {
     public let tonnage: Int // weight capacity of the ship
     public let cardCapacity: Int // card capacity of the ship
     public let timeCubesInitial: Int // initial time cubes for the ship
-    public let timeCubesRemaining: Int // time remaining at port
+    public var timeCubesRemaining: Int // time remaining at port
     
     public var cargo: [Side: [CargoCard]] // a dictionary of sides and their cargo cards
     public let destinations: Set<Destination> // a collection of non-repeating destinations
@@ -500,6 +531,7 @@ extension Ship {
     }
 }
 
+
 // ------------------------------------
 // MARK: Game model
 // ------------------------------------
@@ -547,6 +579,10 @@ public class GameModel {
         self.shipDiscardDeck = shipDiscardDeck
         self.docks = docks
         self.messageStore = messageStore
+    }
+    
+    public var isGameOver: Bool {
+        return (self.cargoDeck.count == 0)
     }
 }
 

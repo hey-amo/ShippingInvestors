@@ -6,11 +6,29 @@
 //
 
 import SwiftUI
+import SI_GameEngine
 import SwiftData
 
 struct MainMenuView: View {
     var body: some View {
-        Text("Hello")
+        VStack {
+            Text("Shipping Investors")
+                .font(.largeTitle)
+                .fontWeight(.bold)
+            
+            Spacer()
+            
+            Button("Start Game") {
+            }
+            .buttonStyle(.borderedProminent)
+            
+            Button("Continue Game") {
+                
+            }
+            .buttonStyle(.borderedProminent)
+            Spacer()
+        }
+        .padding()
     }
 
 }

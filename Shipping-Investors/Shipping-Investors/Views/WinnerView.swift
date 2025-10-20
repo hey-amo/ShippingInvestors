@@ -6,27 +6,27 @@
 //
 
 import SwiftUI
+import SI_GameEngine
 
-struct PlayerResult: Identifiable {
+struct PlayerViewModel: Identifiable {
     let id = UUID()
     let name: String
     let coins: Int
 }
 
 struct WinnerScreenView: View {
-    // Dummy data
-    let players: [PlayerResult] = [
-        PlayerResult(name: "Alice", coins: 18),
-        PlayerResult(name: "Bob", coins: 30),
-        PlayerResult(name: "Charlie", coins: 22),
-        PlayerResult(name: "Diana", coins: 15)
+    let players: [PlayerViewModel] = [
+        PlayerViewModel(name: "Alice", coins: 18),
+        PlayerViewModel(name: "Bob", coins: 30),
+        PlayerViewModel(name: "Charlie", coins: 22),
+        PlayerViewModel(name: "Diana", coins: 15)
     ]
     
-    var sortedPlayers: [PlayerResult] {
+    var sortedPlayers: [PlayerViewModel] {
         players.sorted { $0.coins > $1.coins }
     }
     
-    var winners: [PlayerResult] {
+    var winners: [PlayerViewModel] {
         let maxCoins = sortedPlayers.first?.coins ?? 0
         return sortedPlayers.filter { $0.coins == maxCoins }
     }

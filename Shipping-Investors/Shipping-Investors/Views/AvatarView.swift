@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SI_GameEngine
 
 struct AvatarView: View {
     var body: some View {

@@ -9,7 +9,33 @@ import SwiftUI
 
 struct SettingsView: View {
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        VStack {
+            HStack {
+                Text("Settings")
+                    .font(.title)
+                Spacer()
+                Button {
+                    
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.gray)
+                }
+            }
+            .padding()
+            
+            Form {
+                Section("Game Settings") {
+                    Toggle("Sound Effects", isOn: .constant(true))
+                    Toggle("Background Music", isOn: .constant(true))
+                }
+                
+                Section("Display") {
+                    Toggle("Dark Mode", isOn: .constant(false))
+                }
+            }
+        }
+        .cornerRadius(25)
+        .padding()
     }
 }
 

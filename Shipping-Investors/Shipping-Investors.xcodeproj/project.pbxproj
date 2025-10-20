@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		4DAF736E2EA6262E00B7A2C2 /* SI_GameEngine in Frameworks */ = {isa = PBXBuildFile; productRef = 4DAF736D2EA6262E00B7A2C2 /* SI_GameEngine */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		4DAF73502EA6247000B7A2C2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4DAF736E2EA6262E00B7A2C2 /* SI_GameEngine in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +117,7 @@
 			);
 			name = "Shipping-Investors";
 			packageProductDependencies = (
+				4DAF736D2EA6262E00B7A2C2 /* SI_GameEngine */,
 			);
 			productName = "Shipping-Investors";
 			productReference = 4DAF733C2EA6246F00B7A2C2 /* Shipping-Investors.app */;
@@ -195,6 +201,9 @@
 			);
 			mainGroup = 4DAF73332EA6246F00B7A2C2;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				4DAF736C2EA6262E00B7A2C2 /* XCLocalSwiftPackageReference "../SI_GameEngine" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 4DAF733D2EA6246F00B7A2C2 /* Products */;
 			projectDirPath = "";
@@ -597,6 +606,20 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		4DAF736C2EA6262E00B7A2C2 /* XCLocalSwiftPackageReference "../SI_GameEngine" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../SI_GameEngine;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		4DAF736D2EA6262E00B7A2C2 /* SI_GameEngine */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SI_GameEngine;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 4DAF73342EA6246F00B7A2C2 /* Project object */;
 }

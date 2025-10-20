@@ -1,20 +1,18 @@
 //
-//  ContentView.swift
+//  CardView.swift
 //  Shipping-Investors
 //
 //  Created by Amarjit on 20/10/2025.
 //
 
 import SwiftUI
-import SwiftData
 
-struct ContentView: View {
+struct CardView: View {
     var body: some View {
-        Text("Hello")
+        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
     }
-
 }
 
 #Preview {
-    ContentView()
+    CardView()
 }

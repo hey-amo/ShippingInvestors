@@ -8,11 +8,6 @@
 import SwiftUI
 import SI_GameEngine
 
-struct PlayerViewModel: Identifiable {
-    let id = UUID()
-    let name: String
-    let coins: Int
-}
 
 struct WinnerScreenView: View {
     let players: [PlayerViewModel] = [
